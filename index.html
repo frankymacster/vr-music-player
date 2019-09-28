@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- As if this Glitch were a typical HTML CodePen... -->    
+    <script src="https://aframe.io/releases/0.9.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-template-component@3.2.1/dist/aframe-template-component.min.js"></script>
+    
+    <!-- Use components defined in separate files. -->
+    <script src="constants.js"></script>
+    <script src="state.js"></script>
+    <script src="components/arrow-key-rotation.js"></script>
+    <script src="components/play-on-window-click.js"></script>
+    <script src="components/cursor-listener.js"></script>
+    <script src="components/menu-buttons.js"></script>
+    <script src="components/toggle-menu.js"></script>
+    <script src="components/toggle-scene.js"></script>
+    <script src="components/play-on-vrdisplayactivate-or-enter-vr.js"></script>
+    <script src="components/hide-once-playing.js"></script>
+    <script src="components/title-rotate.js"></script>
+
+    <!-- Specify our scene. -->
+    <a-scene
+      title-rotate
+      toggle-scene
+      toggle-menu
+    >
+      <!-- The original example also has this 180 degree rotation, to appear to be going forward. -->
+      <a-videosphere
+        id="video-player"
+        rotation="0 180 0"
+        src="#video1" 
+        play-on-window-click
+        play-on-vrdisplayactivate-or-enter-vr
+      >
+      </a-videosphere>
+      
+      <a-sky
+        id="sky"
+        opacity="0"
+        color="black"
+        animation__fadein="property: opacity; to: 1; dur: 500; easing: linear; startEvents: animate-sky-fadein"
+        animation__fadeout="property: opacity; to: 0; dur: 500; easing: linear; startEvents: animationcomplete__fadein"
+      >
+      </a-sky>
+      
+      <a-entity
+        id="title-rotation"
+      >
+        <a-plane
+          color="#252525"
+          material="shader: flat"
+          position="0 1 -6"
+          height="0.8"
+          width="5.2"
+        >
+          <a-image
+            src="#down-arrow-icon"
+            position="-2.15 0 0.1"
+            scale="0.3 0.3 0.3"
+          ></a-image>
+          <a-text
+            value="SWITCH SCENES BY LOOKING DOWN"
+            font="exo2semibold"
+            position="0 0.05 0"
+            align="center"
+          ></a-text>
+          <a-image
+            src="#down-arrow-icon"
+            position="2.15 0 0.1"
+            scale="0.3 0.3 0.3"
+          ></a-image>
+        </a-plane>
+      </a-entity>
+      
+      <a-entity
+        id="menu-rotation"
+        rotation="0 0 0"
+      >
+        <a-plane
+          id="menu"
+          color="#252525"
+          height="1.82"
+          width="6.9"
+          material="shader: flat"
+          position="0 1 -5"
+          animation__fadein="property: visible; to: true; dur: 0; easing: linear; startEvents: animate-menu-fadein"
+          animation__fadeout="property: visible; to: false; dur: 0; easing: linear; startEvents: animate-menu-fadeout"
+        >
+          <a-entity
+            scene-button
+            template="src: #thumbnail"
+            data-id="1"
+            data-x-position="-2.15"
+            data-title="RELAX"
+          ></a-entity>
+          <a-entity
+            scene-button
+            template="src: #thumbnail"
+            data-id="2"
+            data-x-position="0"
+            data-title="ENERGIZE"
+          ></a-entity>
+          <a-entity
+            scene-button
+            template="src: #thumbnail"
+            data-id="3"
+            data-x-position="2.15"
+            data-title="EXPERIENCE"
+          ></a-entity>
+          <a-image
+            close-button
+            class="clickable"
+            src="#close-icon"
+            position="0 -1.75 0.5"
+            width="0.35"
+            height="0.35"
+          ></a-image>
+        </a-plane>
+        <a-plane
+          id="track-menu"
+          color="#252525"
+          height="0.7"
+          width="6.9"
+          material="shader: flat"
+          position="0 -0.4 -5"
+          animation__fadein="property: visible; to: true; dur: 0; easing: linear; startEvents: animate-menu-fadein"
+          animation__fadeout="property: visible; to: false; dur: 0; easing: linear; startEvents: animate-menu-fadeout"
+        >
+          <a-entity
+            track-button
+            template="src: #track-button"
+            data-id="1"
+            data-x-position="-2.15"
+            data-title="AMBIENT TRACK"
+          ></a-entity>
+          <a-entity
+            track-button
+            template="src: #track-button"
+            data-id="1"
+            data-x-position="0"
+            data-title="MUSIC TRACK"
+          ></a-entity>
+        </a-plane>
+      </a-entity>
+      
+      <a-sound
+        id="audio-player"
+        src="#audio1">
+      </a-sound>
+      <!-- Define camera with zero user height, movement disabled and arrow key rotation added. -->
+      <a-camera user-height="0" wasd-controls-enabled="false" arrow-key-rotation>
+        <a-entity
+          rotation="0 0 90">
+          <a-cursor 
+            id="cursor"
+            cursor-item 
+            visible="false"
+            material="color: white; opacity: 1;"
+            geometry="radiusInner: 0.03; radiusOuter: 0.05; thetaStart: 90; thetaLength: 360"
+            raycaster="objects: .clickable"
+            fuse="true"
+            fuse-timeout="2000"
+            animation__fusing="property: geometry.thetaLength; startEvents: menu-fuse; easing: linear; dur: 2000; from: 0.1; to: 360"
+            animation__fusing2="property: geometry.thetaStart; startEvents: menu-fuse; easing: linear; dur: 2000; from: 360; to: 0.1"
+            animation__mouseleave="property: geometry.thetaLength; startEvents: menu-mouseleave; easing: linear; dur: 10; to: 360"
+          ></a-cursor>
+        </a-entity>
+      </a-camera>
+
+      <!-- Wait for the video to load. -->
+      <a-assets>
+        <!-- Scene 1 video -->
+        <video
+          id="video1"
+          style="display:none" 
+          autoplay
+          loop
+          muted
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+        >
+          <!-- MP4 video source. -->
+          <source
+            type="video/mp4"
+            src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2FPebblyBeachHeadland-1440p_no_sound.mp4?1556206481856" />
+        </video>
+        <!-- Scene 2 video -->
+        <video
+          id="video2"
+          style="display:none" 
+          autoplay
+          loop
+          muted
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+        >
+          <!-- MP4 video source. -->
+          <source
+            type="video/mp4"
+            src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2FAyutthaya-1440pUHD_no_sound.mp4?1556207213260" />
+        </video>
+        <!-- Scene 3 video -->
+        <video
+          id="video3"
+          style="display:none" 
+          autoplay
+          loop
+          muted
+          crossorigin="anonymous"
+          playsinline
+          webkit-playsinline
+        >
+          <!-- MP4 video source. -->
+          <source
+            type="video/mp4"
+            src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fhandels_messiah_finale_360_1080p_no_audio.mp4?1556219048388" />
+        </video>
+        
+        <!-- Scene 1 audio -->
+        <audio
+          id="audio1"
+          crossorigin="anonymous"
+          src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Frelaxed.mp3?1556205938874">
+          Your browser does not support the audio element.
+        </audio>
+        <!-- Scene 2 audio -->
+        <audio
+          id="audio2"
+          crossorigin="anonymous"
+          src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fsynthwave.mp3?1556115259048">
+          Your browser does not support the audio element.
+        </audio>
+        <!-- Scene 3 audio -->
+        <audio
+          id="audio3"
+          crossorigin="anonymous"
+          src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fsynthwave.mp3?1556115259048">
+          Your browser does not support the audio element.
+        </audio>
+        
+        <!-- Scene thumbnail images -->
+        <img id="scene1-thumbnail" crossorigin="anonymous" src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fpebble-beach_thumb.png?1556206024876" />
+        <img id="scene2-thumbnail" crossorigin="anonymous" src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Ftraining_thumb.png?1556206029259" />
+        
+        <!-- Play icon -->
+        <img id="play-icon" crossorigin="anonymous" src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fbaseline-play_circle_filled-24px.png?1556129312898" />
+        
+        <!-- Pause icon -->
+        <img id="pause-icon" crossorigin="anonymous" src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fbaseline-pause_circle_filled-24px.png?1556139177066" />
+        
+        <!-- X (close) icon -->
+        <img id="close-icon" crossorigin="anonymous" src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fbaseline-close-24px.png?1556201605770" />
+
+        <img id="down-arrow-icon" crossorigin="anonymous" src="https://cdn.glitch.com/440ab5d0-3610-44df-90fa-1fe7a81f997a%2Fbaseline-arrow_downward-24px%20copy.png?1556216776916" />
+
+        <script id="thumbnail" type="text/html">
+          <a-plane
+            id="thumbnail${id}-outline"
+            opacity="0"
+            color="#41C1F8"
+            material="shader:flat"
+            width="1.95"
+            height="1.19"
+            position="${xPosition} 0.15 0.01">
+            <a-plane
+              color="#252525"
+              material="shader:flat"
+              width="1.82"
+              height="1.07"
+              position="0 0 0.0125"
+            >
+              <a-plane
+                color="#ffffff"
+                material="shader:flat"
+                position="0 0 0.015"
+                width="1.75"
+                height="1">
+                <a-image
+                  class="clickable"
+                  material="src: #scene${id}-thumbnail"
+                  position="0 0 0.0175"
+                  width="1.75"
+                  height="1"
+                  opacity="0.5"
+                ></a-image>
+                <a-image
+                  id="play${id}-button"
+                  src="#play-icon"
+                  position="0 0 0.02"
+                  width="0.5"
+                  height="0.5"
+                ></a-image>
+              </a-plane>
+            </a-plane>
+          </a-plane>
+          <a-text
+            value="${title}"
+            font="exo2semibold"
+            align="center"
+            position="${xPosition} -0.6 0.0125"
+          ></a-text>
+        </script>
+        
+        <script id="track-button" type="text/html">
+          <a-plane
+            id="track-button${id}-outline"
+            opacity="1"
+            color="#41C1F8"
+            material="shader:flat"
+            width="1.95"
+            height="0.5"
+            position="${xPosition} 0 0.01">
+            <a-plane
+              color="#252525"
+              material="shader:flat"
+              width="1.82"
+              height="0.45"
+              position="0 0 0.0125"
+            >
+              <a-text
+                value="${title}"
+                font="exo2semibold"
+                align="center"
+                position="0 0 0.0125"
+              ></a-text>
+            </a-plane>
+          </a-plane>
+        </script>
+      </a-assets>
+    </a-scene>
+  </body>
+</html>
